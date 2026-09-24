@@ -1,0 +1,192 @@
+# Playable Ping Pong Game (HTML)
+
+Save this as `pingpong.html` and open it in your browser.
+
+DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ping Pong Game</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: black;
+      overflow: hidden;
+    }
+
+    canvas {
+      border: 3px solid white;
+      background: black;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Ball
+    let ballX = 400;
+    let ballY = 300;
+    let ballRadius = 10;
+    let ballSpeedX = 5;
+    let ballSpeedY = 5;
+
+    // Paddles
+    const paddleWidth = 15;
+    const paddleHeight = 100;
+
+    let playerY = 250;
+    let aiY = 250;
+
+    // Scores
+    let playerScore = 0;
+    let aiScore = 0;
+
+    // Controls
+    let upPressed = false;
+    let downPressed = false;
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "w" || e.key === "W") {
+        upPressed = true;
+      }
+      if (e.key === "s" || e.key === "S") {
+        downPressed = true;
+      }
+    });
+
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "w" || e.key === "W") {
+        upPressed = false;
+      }
+      if (e.key === "s" || e.key === "S") {
+        downPressed = false;
+      }
+    });
+
+    function drawRect(x, y, w, h, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, w, h);
+    }
+
+    function drawCircle(x, y, r, color) {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawText(text, x, y) {
+      ctx.fillStyle = "white";
+      ctx.font = "40px Arial";
+      ctx.fillText(text, x, y);
+    }
+
+    function resetBall() {
+      ballX = canvas.width / 2;
+      ballY = canvas.height / 2;
+      ballSpeedX = -ballSpeedX;
+    }
+
+    function update() {
+      // Move player
+      if (upPressed && playerY > 0) {
+        playerY -= 7;
+      }
+
+      if (downPressed && playerY < canvas.height - paddleHeight) {
+        playerY += 7;
+      }
+
+      // Move AI
+      if (aiY + paddleHeight / 2 < ballY) {
+        aiY += 4;
+      } else {
+        aiY -= 4;
+      }
+
+      // Move ball
+      ballX += ballSpeedX;
+      ballY += ballSpeedY;
+
+      // Bounce top/bottom
+      if (ballY + ballRadius > canvas.height || ballY - ballRadius < 0) {
+        ballSpeedY = -ballSpeedY;
+      }
+
+      // Player paddle collision
+      if (
+        ballX - ballRadius < 30 + paddleWidth &&
+        ballY > playerY &&
+        ballY < playerY + paddleHeight
+      ) {
+        ballSpeedX = -ballSpeedX;
+      }
+
+      // AI paddle collision
+      if (
+        ballX + ballRadius > canvas.width - 30 - paddleWidth &&
+        ballY > aiY &&
+        ballY < aiY + paddleHeight
+      ) {
+        ballSpeedX = -ballSpeedX;
+      }
+
+      // Scoring
+      if (ballX < 0) {
+        aiScore++;
+        resetBall();
+      }
+
+      if (ballX > canvas.width) {
+        playerScore++;
+        resetBall();
+      }
+    }
+
+    function draw() {
+      // Background
+      drawRect(0, 0, canvas.width, canvas.height, "black");
+
+      // Center line
+      for (let i = 0; i < canvas.height; i += 30) {
+        drawRect(canvas.width / 2 - 2, i, 4, 20, "white");
+      }
+
+      // Paddles
+      drawRect(30, playerY, paddleWidth, paddleHeight, "white");
+      drawRect(canvas.width - 30 - paddleWidth, aiY, paddleWidth, paddleHeight, "white");
+
+      // Ball
+      drawCircle(ballX, ballY, ballRadius, "white");
+
+      // Scores
+      drawText(playerScore, canvas.width / 2 - 100, 50);
+      drawText(aiScore, canvas.width / 2 + 70, 50);
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>
+
+
+## Controls
+- **W** = Move Up
+- **S** = Move Down
+
